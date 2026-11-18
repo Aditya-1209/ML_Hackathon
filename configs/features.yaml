@@ -1,0 +1,5 @@
+radius_m: 50
+max_candidates: 8
+fallback_radius_m: 200
+heading_min_step_m: 3
+motion_max_gap_s: 30

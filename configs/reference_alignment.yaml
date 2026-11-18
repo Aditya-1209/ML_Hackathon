@@ -1,0 +1,4 @@
+max_reference_distance_m: 50
+ambiguity_cost_margin_m: 5
+alignment_gap_s: 30
+max_alignment_cells: 5000000
