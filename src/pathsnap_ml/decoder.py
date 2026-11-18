@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy as np
 import pandas as pd
 
@@ -8,7 +10,9 @@ from .road_routing import Router
 def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="hmm"):
     score_keys(candidates,scores)
     joined = candidates.merge(scores[KEY+["p_match"]],on=KEY,validate="one_to_one")
-    groups = {k:v.sort_values("candidate_arc_id").reset_index(drop=True) for k,v in joined.groupby("obs_id")}
+    groups = defaultdict(list)
+    for candidate in joined.sort_values(["obs_id", "candidate_arc_id"]).itertuples(index=False):
+        groups[candidate.obs_id].append(candidate)
     router = Router(nodes,arcs,metadata)
     chosen = {}
     run, values, back = [], [], []
@@ -20,7 +24,7 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
         state = int(np.argmax(values[-1]))
         for t in range(len(run)-1,-1,-1):
             obs,frame = run[t]
-            row = frame.iloc[state]
+            row = frame[state]
             chosen[obs.obs_id] = row
             if t:
                 state = int(back[t][state])
@@ -38,7 +42,7 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
             breaks[obs.obs_id] = "invalid_observation" if not obs.valid else "no_candidates"
             continue
         frame = groups[obs.obs_id]
-        emission = np.log(np.maximum(frame.p_match.to_numpy(),config["epsilon"]))
+        emission = np.log(np.maximum(np.fromiter((row.p_match for row in frame), dtype=float, count=len(frame)),config["epsilon"]))
         if run:
             previous,old = run[-1]
             dt = obs.timestamp_s-previous.timestamp_s
@@ -50,8 +54,8 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
                 displacement = np.hypot(obs.x_m-previous.x_m,obs.y_m-previous.y_m)
                 total = np.full((len(old),len(frame)),-np.inf)
                 limit = config["max_speed_mps"]*max(0,dt)+config["slack_m"]
-                for i,left in enumerate(old.itertuples()):
-                    for j,right in enumerate(frame.itertuples()):
+                for i,left in enumerate(old):
+                    for j,right in enumerate(frame):
                         distance,_ = router.between(left,right,limit)
                         if np.isfinite(distance):
                             total[i,j] = values[-1][i]-abs(distance-displacement)/config["beta_m"]
