@@ -1,0 +1,27 @@
+{
+  "model_id": "lightgbm",
+  "estimator_id": "lightgbm",
+  "data_hash": "171d39ca409db8287c42f23f8e51b94329169858c9d5ace08106720a497921a0",
+  "feature_config_hash": "40976cb3ef73b5ca7be03214855ac024339b7c0346600a804bdd0688ebe1dd62",
+  "profile": "standard",
+  "accuracy_basis": "reference-derived proxy; ordered-route alignment, not official observation ground truth",
+  "python": "3.12.15 (main, Sep 30 2026, 22:04:19) [Clang 21.0.0 (clang-2100.3.34.2)]",
+  "sklearn": "1.9.1",
+  "seed": 42,
+  "feature_columns": [
+    "distance_m",
+    "heading_difference_deg",
+    "arc_length_m",
+    "projection_fraction",
+    "delta_t_s",
+    "gps_step_m",
+    "speed_mps",
+    "heading_available"
+  ],
+  "positive_class": 1,
+  "classes": [
+    0,
+    1
+  ],
+  "params": {}
+}

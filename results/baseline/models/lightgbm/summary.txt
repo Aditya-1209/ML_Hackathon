@@ -1,0 +1,77 @@
+Model lightgbm | standard | reference-derived proxy labels
+Mean-fold CV Top-1 0.843453
+{
+  "eligible_observations": 13390,
+  "valid_observations": 19160,
+  "label_coverage": 0.6988517745302714,
+  "top1_accuracy": 0.8908140403286035,
+  "candidate_miss_rate": 0.0010455563853621896,
+  "no_candidate_rate": 0.0,
+  "per_trip": [
+    {
+      "trip_id": "00000000",
+      "top1_accuracy": 0.963881636205396,
+      "labelled_observations": 2298
+    },
+    {
+      "trip_id": "00000007",
+      "top1_accuracy": 0.9333855799373041,
+      "labelled_observations": 1276
+    },
+    {
+      "trip_id": "00000009",
+      "top1_accuracy": 0.8782894736842105,
+      "labelled_observations": 608
+    },
+    {
+      "trip_id": "00000040",
+      "top1_accuracy": 0.916793893129771,
+      "labelled_observations": 2620
+    },
+    {
+      "trip_id": "00000052",
+      "top1_accuracy": 0.985,
+      "labelled_observations": 200
+    },
+    {
+      "trip_id": "00000056",
+      "top1_accuracy": 0.9158512720156555,
+      "labelled_observations": 2044
+    },
+    {
+      "trip_id": "00000065",
+      "top1_accuracy": 0.95,
+      "labelled_observations": 420
+    },
+    {
+      "trip_id": "00000076",
+      "top1_accuracy": 0.8851931330472103,
+      "labelled_observations": 932
+    },
+    {
+      "trip_id": "00000077",
+      "top1_accuracy": 0.7385786802030457,
+      "labelled_observations": 2364
+    },
+    {
+      "trip_id": "00000091",
+      "top1_accuracy": 0.8710191082802548,
+      "labelled_observations": 628
+    }
+  ],
+  "candidate_accuracy": 0.9484383166876209,
+  "candidate_macro_precision": 0.9148909904275049,
+  "candidate_macro_recall": 0.9174067808401095,
+  "candidate_macro_f1": 0.9161417424903098,
+  "log_loss": 0.12788121152072965,
+  "confusion_matrix": [
+    [
+      55535,
+      1878
+    ],
+    [
+      1772,
+      11604
+    ]
+  ]
+}

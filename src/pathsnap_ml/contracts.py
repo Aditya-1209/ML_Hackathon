@@ -9,7 +9,7 @@ VERSION = "pathsnap-ml-v1"
 KEY = ["trip_id", "obs_id", "candidate_arc_id"]
 FEATURES = ["distance_m", "heading_difference_deg", "arc_length_m",
             "projection_fraction", "delta_t_s", "gps_step_m", "speed_mps", "heading_available"]
-MODEL_IDS = ["logistic_regression", "knn", "random_forest", "hist_gradient_boosting", "decision_tree"]
+MODEL_IDS = ["logistic_regression", "knn", "random_forest", "hist_gradient_boosting", "decision_tree", "lightgbm"]
 
 
 def fingerprint(value):

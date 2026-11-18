@@ -13,6 +13,16 @@ python run_person4.py
 
 Person 1 trains Logistic Regression and KNN. Person 2 trains Random Forest. Person 3 trains HistGradientBoosting. Person 4 trains Decision Tree. Each command runs the fixed five trip-grouped folds on all 80 training trips, refits on those trips and measures the 10 student-test trips. The complete results go under results/baseline/models/<model_id> and artifacts/standard/<model_id>. Pass --smoke for a smaller 10-training-trip, 2-student-trip software check using the same five-fold assignments. Smoke outputs are stored separately and cannot select the final model.
 
+## LightGBM experiment
+
+From the repository root, install the dependencies and run the sixth baseline with the shared experiment runner:
+
+```sh
+PYTHONPATH=src python -m pathsnap_ml.cli_models train --workspace . --model lightgbm
+```
+
+In Windows Command Prompt, enter `set PYTHONPATH=src` first, then run the command beginning with `python`. The model uses the same candidate features, folds and scoring rules as the original five. The [comparison report](report_sections/06_model_comparison_and_selection.md) includes all six measured runs.
+
 ## Put your completed part on your branch
 
 First fetch your team clone with git fetch origin. From the extracted standalone folder, run the publishing helper with your person number and the absolute path to that clone.

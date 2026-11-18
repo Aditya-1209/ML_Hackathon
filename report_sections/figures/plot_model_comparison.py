@@ -15,7 +15,7 @@ from pathsnap_ml.evaluation import top_predictions
 from pathsnap_ml.route_metrics import compute_continuity
 
 NAMES = {"random_forest": "Random Forest", "hist_gradient_boosting": "Histogram boosting",
-         "decision_tree": "Decision Tree", "logistic_regression": "Logistic Regression", "knn": "KNN"}
+         "decision_tree": "Decision Tree", "logistic_regression": "Logistic Regression", "knn": "KNN", "lightgbm": "LightGBM"}
 OUT = Path(__file__).parent
 
 

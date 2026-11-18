@@ -11,6 +11,10 @@ from .experiments import load_data,make_folds,cross_validate,run_experiment
 def search_params(trial,model):
     if model=="logistic_regression":
         return {"model__C":trial.suggest_float("model__C",.01,100,log=True)}
+    if model=="lightgbm":
+        return {"model__learning_rate": trial.suggest_float("model__learning_rate", .02, .15, log=True),
+                "model__num_leaves": trial.suggest_int("model__num_leaves", 15, 63),
+                "model__min_child_samples": trial.suggest_int("model__min_child_samples", 15, 100)}
     if model=="knn":
         return {"model__n_neighbors":trial.suggest_int("model__n_neighbors",3,25),
                 "model__weights":trial.suggest_categorical("model__weights",["uniform","distance"])}

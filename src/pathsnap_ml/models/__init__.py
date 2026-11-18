@@ -1,1 +1,1 @@
-"""Five independently fitted candidate classifiers."""
+"""Candidate road-segment classifiers."""
