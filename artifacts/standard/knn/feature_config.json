@@ -1,0 +1,30 @@
+{
+  "contract_version": "pathsnap-ml-v1",
+  "feature_columns": [
+    "distance_m",
+    "heading_difference_deg",
+    "arc_length_m",
+    "projection_fraction",
+    "delta_t_s",
+    "gps_step_m",
+    "speed_mps",
+    "heading_available"
+  ],
+  "config": {
+    "radius_m": 50,
+    "fallback_radius_m": 200,
+    "max_candidates": 8,
+    "heading_min_step_m": 2,
+    "heading_max_gap_s": 60
+  },
+  "feature_config_hash": "40976cb3ef73b5ca7be03214855ac024339b7c0346600a804bdd0688ebe1dd62",
+  "alignment_config": {
+    "search_radius_m": 100,
+    "max_reference_candidates": 8,
+    "max_assigned_distance_m": 50,
+    "ambiguous_distance_margin_m": 3,
+    "transition_scale_m": 50,
+    "gap_s": 60
+  },
+  "accuracy_basis": "reference-derived proxy; ordered-route alignment, not official observation ground truth"
+}
