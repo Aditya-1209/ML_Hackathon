@@ -1,0 +1,104 @@
+{
+  "best_configuration": {
+    "beta_m": 10.0,
+    "epsilon": 1e-06,
+    "normalize_emissions": false,
+    "max_speed_mps": 40.0,
+    "speed_slack_mps": 5.0,
+    "max_gap_s": 15.0
+  },
+  "objective": "continuity_rate",
+  "best_score": 1.0,
+  "metric_definitions": {
+    "continuity_rate": "Fraction of consecutive valid transitions within max_gap_s that form a reachable, physically feasible network path",
+    "speed_constraint": "effective_speed <= max_speed_mps + speed_slack_mps (45.0 m/s)",
+    "emission_score": "log(max(p_match, epsilon))",
+    "transition_score": "-abs(network_dist_m - observed_disp_m) / beta_m"
+  },
+  "total_trials": 5,
+  "trials": [
+    {
+      "trial_id": 1,
+      "params": {
+        "beta_m": 5.0,
+        "epsilon": 1e-06,
+        "normalize_emissions": false,
+        "max_speed_mps": 35.0,
+        "speed_slack_mps": 5.0,
+        "max_gap_s": 15.0
+      },
+      "metrics": {
+        "mean_continuity_rate": 0.982
+      },
+      "status": "SUCCESS"
+    },
+    {
+      "trial_id": 2,
+      "params": {
+        "beta_m": 10.0,
+        "epsilon": 1e-06,
+        "normalize_emissions": false,
+        "max_speed_mps": 40.0,
+        "speed_slack_mps": 5.0,
+        "max_gap_s": 15.0
+      },
+      "metrics": {
+        "mean_continuity_rate": 1.0
+      },
+      "status": "SUCCESS"
+    },
+    {
+      "trial_id": 3,
+      "params": {
+        "beta_m": 20.0,
+        "epsilon": 1e-06,
+        "normalize_emissions": false,
+        "max_speed_mps": 40.0,
+        "speed_slack_mps": 5.0,
+        "max_gap_s": 15.0
+      },
+      "metrics": {
+        "mean_continuity_rate": 0.995
+      },
+      "status": "SUCCESS"
+    },
+    {
+      "trial_id": 4,
+      "params": {
+        "beta_m": 10.0,
+        "epsilon": 1e-05,
+        "normalize_emissions": true,
+        "max_speed_mps": 40.0,
+        "speed_slack_mps": 5.0,
+        "max_gap_s": 15.0
+      },
+      "metrics": {
+        "mean_continuity_rate": 0.978
+      },
+      "status": "SUCCESS"
+    },
+    {
+      "trial_id": 5,
+      "params": {
+        "beta_m": 25.0,
+        "epsilon": 1e-07,
+        "normalize_emissions": false,
+        "max_speed_mps": 45.0,
+        "speed_slack_mps": 5.0,
+        "max_gap_s": 20.0
+      },
+      "metrics": {
+        "mean_continuity_rate": 0.989
+      },
+      "status": "SUCCESS"
+    }
+  ],
+  "provenance": {
+    "source": "person_4_decoder_tuning",
+    "model": "DecisionTree + HMM Viterbi",
+    "feature_configuration_hash": "pathsnap_v1_8_features_median_impute",
+    "oof_score_provenance": "training_folds_oof_only",
+    "evaluator_data_used": false,
+    "timestamp_iso": "2026-11-18T11:35:00Z"
+  }
+}

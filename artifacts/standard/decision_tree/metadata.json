@@ -1,0 +1,27 @@
+{
+  "model_id": "decision_tree",
+  "estimator_id": "decision_tree",
+  "data_hash": "e3529fdc5377c83ac05ce4e0f8cefb9cdeada54d04d5e575558aec9233f03736",
+  "feature_config_hash": "40976cb3ef73b5ca7be03214855ac024339b7c0346600a804bdd0688ebe1dd62",
+  "profile": "standard",
+  "accuracy_basis": "reference-derived proxy; ordered-route alignment, not official observation ground truth",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "sklearn": "1.9.1",
+  "seed": 42,
+  "feature_columns": [
+    "distance_m",
+    "heading_difference_deg",
+    "arc_length_m",
+    "projection_fraction",
+    "delta_t_s",
+    "gps_step_m",
+    "speed_mps",
+    "heading_available"
+  ],
+  "positive_class": 1,
+  "classes": [
+    0,
+    1
+  ],
+  "params": {}
+}

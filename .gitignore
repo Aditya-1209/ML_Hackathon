@@ -8,3 +8,17 @@ results/decoder/**/sample_map.html
 results/smoke/
 artifacts/smoke/
 *.sqlite3
+
+/Dataset/
+
+# Python artifacts
+*.py[cod]
+*$py.class
+*.so
+.coverage
+htmlcov/
+
+# Environments
+env/
+venv/
+ENV/

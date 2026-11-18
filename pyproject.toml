@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pathsnap-ml"
+version = "0.1.0"
+description = "PathSnap ML: Distributed Map-Matching & Route Reconstruction"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26,<3",
+    "pandas>=2.1,<3",
+    "scipy>=1.11,<2",
+    "scikit-learn>=1.4,<2",
+    "folium>=0.16,<1",
+    "PyYAML>=6,<7",
+    "pytest>=8,<10",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

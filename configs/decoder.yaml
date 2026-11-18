@@ -1,0 +1,5 @@
+beta_m: 50
+gap_s: 60
+max_speed_mps: 55
+slack_m: 30
+epsilon: 0.000000001
