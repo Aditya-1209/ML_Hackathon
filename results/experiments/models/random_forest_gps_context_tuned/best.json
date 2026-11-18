@@ -1,0 +1,53 @@
+{
+  "model_id": "random_forest_gps_context_tuned",
+  "params": {
+    "n_estimators": 64,
+    "max_depth": 14,
+    "min_samples_leaf": 5,
+    "max_samples": 0.45
+  },
+  "cv_mean_top1": 0.9378192204135347,
+  "fold_top1": [
+    0.9452355267889249,
+    0.9691010045352435,
+    0.9131622064445658,
+    0.9084254182091464,
+    0.9531719460897932
+  ],
+  "trial": 4,
+  "trials": 10,
+  "search_seconds": 649.3520983329508,
+  "seed": 42,
+  "sampler": "Optuna TPE",
+  "startup_trials": 3,
+  "objective": "equal-weight mean of five trip-grouped fold Top-1 accuracies",
+  "feature_columns": [
+    "distance_m",
+    "heading_difference_deg",
+    "arc_length_m",
+    "projection_fraction",
+    "delta_t_s",
+    "gps_step_m",
+    "speed_mps",
+    "heading_available",
+    "excess_distance_m",
+    "approach_12_alignment",
+    "approach_12_error_m",
+    "approach_12_error_m_above_best",
+    "approach_40_alignment",
+    "approach_40_error_m",
+    "approach_40_error_m_above_best",
+    "approach_90_alignment",
+    "approach_90_error_m",
+    "approach_90_error_m_above_best",
+    "departure_12_alignment",
+    "departure_12_error_m",
+    "departure_12_error_m_above_best",
+    "departure_40_alignment",
+    "departure_40_error_m",
+    "departure_40_error_m_above_best",
+    "departure_90_alignment",
+    "departure_90_error_m",
+    "departure_90_error_m_above_best"
+  ]
+}
