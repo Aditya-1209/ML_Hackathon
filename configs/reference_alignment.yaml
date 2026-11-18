@@ -1,0 +1,6 @@
+search_radius_m: 100
+max_reference_candidates: 8
+max_assigned_distance_m: 50
+ambiguous_distance_margin_m: 3
+transition_scale_m: 50
+gap_s: 60
