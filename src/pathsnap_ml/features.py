@@ -1,60 +1,33 @@
-"""Build the ordered, label-free classifier features."""
-
 import numpy as np
 import pandas as pd
 
-from .candidates import KEY_COLUMNS, segment_geometry, valid_observations
-
-try:
-    from .contracts import FEATURE_COLUMNS
-except ModuleNotFoundError as exc:
-    if exc.name != f"{__package__}.contracts":
-        raise
-    # Supports independent tests before the shared contracts branch is merged.
-    FEATURE_COLUMNS = [
-        "distance_m", "heading_difference_deg", "arc_length_m", "projection_fraction",
-        "delta_t_s", "gps_step_m", "speed_mps", "heading_available",
-    ]
+from .contracts import FEATURES, KEY, validate_features
 
 
 def make_features(observations, nodes, arcs, candidates, metadata, config):
-    valid = valid_observations(observations, metadata).set_index("obs_id")
-    starts, ends = segment_geometry(nodes, arcs, metadata)
-    if candidates.duplicated(KEY_COLUMNS).any() or not candidates.trip_id.eq(metadata["trip_id"]).all():
-        raise ValueError("Invalid candidate keys")
-    if not candidates.obs_id.isin(valid.index).all() or not candidates.candidate_arc_id.isin(arcs.arc_id).all():
-        raise ValueError("Candidate references an unknown arc or invalid observation")
-    min_step = config["heading_min_step_m"]
-    max_gap = config["motion_max_gap_s"]
-    if not np.isfinite([min_step, max_gap]).all() or min_step <= 0 or max_gap <= 0:
-        raise ValueError("Expected positive finite motion thresholds")
-    delta = valid.timestamp_s.diff()
-    displacement = valid[["x_m", "y_m"]].diff()
-    step = np.hypot(displacement.x_m, displacement.y_m)
-    usable_time = delta.gt(0) & delta.le(max_gap)
-    speed = step / delta.where(usable_time)
-    gps_heading = np.rad2deg(np.arctan2(displacement.y_m, displacement.x_m))
-    gps_heading = gps_heading.where(usable_time & step.ge(min_step))
-    vector = ends - starts
-    road_heading = np.rad2deg(np.arctan2(vector[:, 1], vector[:, 0]))
-    road_heading[np.all(vector == 0, axis=1)] = np.nan
-    road_headings = pd.Series(road_heading, index=arcs.arc_id)
-    gps = candidates.obs_id.map(gps_heading)
-    road = candidates.candidate_arc_id.map(road_headings)
-    angle = ((gps - road + 180) % 360 - 180).abs()
-    if not metadata["graph_directed"]:
-        angle = np.minimum(angle, 180 - angle)
-
-    features = candidates[KEY_COLUMNS + ["distance_m", "projection_fraction"]].copy()
-    features["heading_difference_deg"] = angle
-    features["arc_length_m"] = candidates.candidate_arc_id.map(arcs.set_index("arc_id").length_m)
-    features["delta_t_s"] = candidates.obs_id.map(delta)
-    features["gps_step_m"] = candidates.obs_id.map(step)
-    features["speed_mps"] = candidates.obs_id.map(speed)
-    features["heading_available"] = angle.notna().astype(float)
-    columns = list(FEATURE_COLUMNS)
-    features = features.astype({name: "float64" for name in columns})
-    if np.isinf(features[columns].to_numpy()).any():
-        raise ValueError("Infinite classifier feature")
-    return features[KEY_COLUMNS + columns]
-
+    motion = observations[observations.valid].sort_values("order_index").copy()
+    motion["delta_t_s"] = motion.timestamp_s.diff()
+    dx, dy = motion.x_m.diff(), motion.y_m.diff()
+    motion["gps_step_m"] = np.hypot(dx, dy)
+    usable = (motion.delta_t_s.gt(0) & motion.delta_t_s.le(config["heading_max_gap_s"])
+              & motion.gps_step_m.ge(config["heading_min_step_m"]))
+    motion["gps_heading"] = np.where(usable, np.degrees(np.arctan2(dx, dy)), np.nan)
+    motion["speed_mps"] = np.where(motion.delta_t_s.gt(0),
+                                   motion.gps_step_m / motion.delta_t_s, np.nan)
+    motion["heading_available"] = usable.astype(float)
+    xy = nodes.set_index("node_id")[["x_m", "y_m"]]
+    delta = xy.loc[arcs.to_node_id].to_numpy() - xy.loc[arcs.from_node_id].to_numpy()
+    roads = pd.DataFrame({"trip_id": arcs.trip_id, "candidate_arc_id": arcs.arc_id,
+                          "arc_length_m": arcs.length_m,
+                          "road_heading": np.degrees(np.arctan2(delta[:, 0], delta[:, 1]))})
+    roads.loc[roads.arc_length_m.eq(0), "road_heading"] = np.nan
+    result = candidates.merge(motion[["trip_id", "obs_id", "delta_t_s", "gps_step_m",
+                                      "speed_mps", "heading_available", "gps_heading"]],
+                              on=["trip_id", "obs_id"], validate="many_to_one")
+    result = result.merge(roads, on=["trip_id", "candidate_arc_id"], validate="many_to_one")
+    diff = abs((result.gps_heading - result.road_heading + 180) % 360 - 180)
+    result["heading_difference_deg"] = diff if metadata["graph_directed"] else np.minimum(diff, 180-diff)
+    result.loc[result.road_heading.isna(), "heading_available"] = 0.
+    result = result[KEY + FEATURES].astype({c: "float64" for c in FEATURES})
+    validate_features(result)
+    return result

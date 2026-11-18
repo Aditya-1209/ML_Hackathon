@@ -1,4 +1,6 @@
-max_reference_distance_m: 50
-ambiguity_cost_margin_m: 5
-alignment_gap_s: 30
-max_alignment_cells: 20000000
+search_radius_m: 100
+max_reference_candidates: 8
+max_assigned_distance_m: 50
+ambiguous_distance_margin_m: 3
+transition_scale_m: 50
+gap_s: 60
