@@ -123,7 +123,9 @@ async function initialize() {
     const data = await request("/api/trips");
     el("connection").textContent = "API connected";
     el("connection").className = "online";
-    el("mode-badge").hidden = data.mode !== "placeholder";
+    const modelLabel = data.model_name ?? (data.mode === "placeholder" ? "Placeholder model" : "");
+    el("mode-badge").textContent = modelLabel;
+    el("mode-badge").hidden = !modelLabel;
     select.replaceChildren(...data.trips.map(({trip_id}) => new Option(trip_id, trip_id)));
     if (!data.trips.length) { message("No trips are available."); return; }
     select.disabled = el("evaluate").disabled = false;

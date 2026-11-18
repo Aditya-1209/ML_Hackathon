@@ -9,12 +9,14 @@ from types import SimpleNamespace
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import joblib
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 import yaml
 
 from .candidates import make_candidates
+from .context_forest import add_context_features, predict as predict_context
 from .contracts import KEY, fingerprint, manifest
 from .data_io import load_processed_trip, prepare_trip, read_raw_reference
 from .decoder import decode_trip
@@ -25,6 +27,7 @@ from .route_metrics import compute_continuity
 
 LOG = logging.getLogger("uvicorn.error")
 WORKSPACE = Path(__file__).resolve().parents[2]
+FINAL_MODEL_ID = "random_forest_gps_context_tuned"
 
 
 class EvaluationRequest(BaseModel):
@@ -38,7 +41,9 @@ def _yaml(workspace, name):
 def _decoder_config(workspace, bundle, override):
     defaults = _yaml(workspace, "decoder.yaml")
     if override is not None:
-        payload = yaml.safe_load(Path(override).read_text(encoding="utf-8"))
+        path = Path(override)
+        load = json.loads if path.suffix.lower() == ".json" else yaml.safe_load
+        payload = load(path.read_text(encoding="utf-8"))
     elif bundle is not None and (bundle / "decoder_config.json").is_file():
         payload = json.loads((bundle / "decoder_config.json").read_text(encoding="utf-8"))
     else:
@@ -101,10 +106,23 @@ def _map_data(obs, nodes, arcs, route):
             "roads": lat_lon_edges(context_edges), "runs": segments}
 
 
-def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, origins=(), decoder_config=None):
+def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, origins=(),
+               decoder_config=None, use_final_model=False):
     workspace = Path(workspace).resolve()
     evaluator_root = Path(evaluator_root).resolve() if evaluator_root else None
     bundle = Path(model_bundle).resolve() if model_bundle else None
+    context_model = None
+    model_name = None
+    if use_final_model:
+        bundle = WORKSPACE / "results" / "experiments" / "models" / FINAL_MODEL_ID
+        selection = json.loads((bundle / "best.json").read_text(encoding="utf-8"))
+        context_columns = selection["feature_columns"]
+        context_model = joblib.load(bundle / "model.joblib")
+        decoder_config = decoder_config or (
+            WORKSPACE / "results" / "decoder" / "experiments"
+            / f"{FINAL_MODEL_ID}_segment_breaks" / "decoder_config.json"
+        )
+        model_name = "GPS-context Random Forest"
     feature_config = _yaml(workspace, "features.yaml")
     alignment_config = _yaml(workspace, "reference_alignment.yaml")
     decoder = _decoder_config(workspace, bundle, decoder_config)
@@ -135,6 +153,7 @@ def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, orig
     @app.get("/api/health")
     def health():
         return {"status": "ok", "mode": "placeholder" if bundle is None else "model",
+                "model_name": model_name,
                 "partition": "student_test" if evaluator_root is None else "evaluator_test",
                 "trip_count": len(entries)}
 
@@ -157,8 +176,14 @@ def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, orig
             obs, nodes, arcs, meta = (trip[key] for key in ("observations", "nodes", "arcs", "metadata"))
             candidates = make_candidates(obs, nodes, arcs, meta, feature_config)
             features = make_features(obs, nodes, arcs, candidates, meta, feature_config)
-            scores = (_preview_scores(features) if bundle is None else
-                      predict_candidates(bundle, features, feature_hash))
+            if context_model is not None:
+                features = add_context_features(obs, nodes, arcs, features, meta)
+                scores = (predict_context(context_model, features, context_columns)
+                          if len(features) else features[KEY].assign(p_match=np.nan))
+            elif bundle is not None:
+                scores = predict_candidates(bundle, features, feature_hash)
+            else:
+                scores = _preview_scores(features)
             mode = "classifier_only" if bundle is None else "hmm"
             predictions, route = decode_trip(obs, nodes, arcs, candidates, scores, meta, decoder, mode)
             continuity = compute_continuity(obs, nodes, arcs, candidates, predictions, meta, decoder)
@@ -187,10 +212,12 @@ def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, orig
 
 
 def app_factory():
+    bundle = os.environ.get("PATHSNAP_MODEL_BUNDLE")
     return create_app(
         workspace=os.environ.get("PATHSNAP_WORKSPACE", WORKSPACE),
         evaluator_root=os.environ.get("PATHSNAP_EVALUATOR_ROOT"),
-        model_bundle=os.environ.get("PATHSNAP_MODEL_BUNDLE"),
+        model_bundle=bundle,
+        use_final_model=bundle is None,
         decoder_config=os.environ.get("PATHSNAP_DECODER_CONFIG"),
         origins=tuple(value.strip() for value in os.environ.get("PATHSNAP_UI_ORIGINS", "").split(",")
                       if value.strip()),

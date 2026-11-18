@@ -5,7 +5,7 @@ its ID. Laptop 1 loads the trip, creates candidate features, scores and decodes 
 route, then compares predictions with server-side references. The response contains
 the geometry and aggregate metrics required by the UI.
 
-## Run the development preview
+## Run the final app
 
 On Laptop 1, from the repository root in PowerShell:
 
@@ -15,13 +15,13 @@ $env:PYTHONPATH = 'src'
 python -m uvicorn pathsnap_ml.api:app_factory --factory --host 0.0.0.0 --port 8000
 ```
 
-On Laptop 2, open `http://<laptop-1-ip>:8000` on the same LAN. The page initially
-evaluates one development trip. Pick any other trip and select **Evaluate trip**.
+On Laptop 2, open `http://<laptop-1-ip>:8000` on the same LAN. Pick a trip and
+select **Evaluate trip**.
 Keep the Laptop 1 console visible. It logs each inference request and its outcome.
 
-The preview uses the 10 student-test trips and candidate scores derived from
-distance and heading. The UI labels it **Placeholder model**. There is no trained
-model requirement for this preview.
+The default uses the checked-in GPS-context Random Forest and tuned Viterbi
+decoder. It evaluates the ten student-test trips when no private evaluation
+directory is configured. Use scikit-learn 1.9.1, the version used for training.
 
 For a separately hosted UI on Laptop 2, run `python -m http.server 8080 --directory frontend`
 on that laptop and open `http://localhost:8080/?api=http%3A%2F%2F<laptop-1-ip>%3A8000`.
@@ -35,16 +35,16 @@ offline demo, add `?basemap=off` to the browser URL, or turn off **Street map**
 from **Layers**. The trip road network still renders from API data and the
 map controls still work. Only the street tiles require internet access.
 
-## Connect the final model and evaluator data
+## Connect evaluator data
 
-On Laptop 1, set the two paths, then restart the same API command:
+On Laptop 1, set the private evaluation path, then restart the same API command:
 
 ```powershell
-$env:PATHSNAP_MODEL_BUNDLE = 'C:\PathSnap\selected-model'
 $env:PATHSNAP_EVALUATOR_ROOT = 'C:\PathSnap\private-evaluation'
 ```
 
-The bundle must contain `model.joblib` and `metadata.json` in the format exported
+To run an earlier model exported by the shared training pipeline, set
+`PATHSNAP_MODEL_BUNDLE`. That bundle must contain `model.joblib` and `metadata.json` in the format exported
 by the training pipeline. The FastAPI adapter uses the existing
 `predict_candidates` function and validates the feature order and hash against
 the configured feature generation. Use the dependency versions that produced

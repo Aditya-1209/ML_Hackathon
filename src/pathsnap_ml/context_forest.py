@@ -33,12 +33,28 @@ def continuations(arcs, reverse):
 
 def trip_features(root, tid):
     folder = root / "data/processed" / tid
-    if not json.loads((folder / "metadata.json").read_text())["graph_directed"]:
+    return add_context_features(
+        pd.read_parquet(folder / "observations.parquet"),
+        pd.read_parquet(folder / "nodes.parquet"),
+        pd.read_parquet(folder / "arcs.parquet"),
+        pd.read_parquet(root / "data/features" / f"{tid}.parquet"),
+        json.loads((folder / "metadata.json").read_text()),
+    )
+
+
+def add_context_features(obs, nodes, arcs, features, metadata):
+    if not metadata["graph_directed"]:
         raise ValueError("These context features require a directed road graph")
-    obs = pd.read_parquet(folder / "observations.parquet").sort_values("order_index").reset_index(drop=True)
-    arcs = pd.read_parquet(folder / "arcs.parquet").reset_index(drop=True)
-    nodes = pd.read_parquet(folder / "nodes.parquet").set_index("node_id")[["x_m", "y_m"]]
-    frame = pd.read_parquet(root / "data/features" / f"{tid}.parquet")
+    obs = obs.sort_values("order_index").reset_index(drop=True)
+    arcs = arcs.reset_index(drop=True)
+    nodes = nodes.set_index("node_id")[["x_m", "y_m"]]
+    frame = features.copy()
+    if frame.empty:
+        columns = ["excess_distance_m"]
+        columns.extend(f"{direction}_{distance}_{suffix}"
+                       for direction in ("approach", "departure") for distance in DISTANCES
+                       for suffix in ("alignment", "error_m", "error_m_above_best"))
+        return frame.assign(**dict.fromkeys(columns, np.nan))
     a = pd.Index(arcs.arc_id).get_indexer(frame.candidate_arc_id)
     i = pd.Index(obs.obs_id).get_indexer(frame.obs_id)
     if (a < 0).any() or (i < 0).any():
