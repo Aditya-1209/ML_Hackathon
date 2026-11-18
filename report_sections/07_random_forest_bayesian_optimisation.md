@@ -1,47 +1,37 @@
 # 7. Bayesian hyperparameter optimisation of Random Forest
 
-On the ten development test trips, observation Top-1 accuracy **decreased from 89.28% to 89.18%** (-0.10 percentage points). The tuned forest picked the assigned road for 11,941 of 13,390 labelled observations, compared with 11,955 for the untuned forest. Across the ten trips, accuracy rose on 3, fell on 5 and stayed equal on 2. These are reference-derived labels. Coverage on the student-test partition was 69.89%.
+**The selected GPS-context Random Forest achieved 94.98% student-test Top-1 before decoding**. Bayesian tuning changed the count from 12,716 to 12,718 correct road assignments out of 13,390. Mean validation Top-1 moved from 93.80% to 93.78%. The practical benefit was efficiency: the tuned forest took 26.52 seconds to fit and occupied 5.98 MB, compared with 82.12 seconds and 19.08 MB for its untuned counterpart. Its candidate probabilities supply the emissions for route reconstruction. [Section 6 — feature and model selection](06_model_comparison_and_selection.md) · [Section 8 — accuracy after decoding](08_hmm_viterbi_route_reconstruction.md)
 
-For road-selection accuracy, the original Random Forest remains the better-supported choice on these trips. The tuned model is a faster experimental alternative and is exported under the runner’s `final` ID for reproducibility. Its decoder has not been validated in this experiment.
+## Objective and search space
 
-## Search design
+We used the 27 features selected in Section 6 and the five published folds of the 80 training trips. Each fold held out 16 complete trips. Median imputation was fitted on training-fold features. For each valid, labelled observation on a held-out trip, the forest ranked candidate roads by class-1 probability, breaking ties by lower arc ID. A missing reference candidate counted as an error. The search maximised the mean of the five fold Top-1 accuracies, giving each fold equal weight.
 
-Section 6 selected Random Forest using mean observation Top-1 across five trip-grouped folds. We kept that objective: for each held-out trip, rank each observation’s road candidates by class-1 probability (breaking ties by lower arc ID). An assigned observation whose target is absent counts as incorrect. Pool observations within a fold and give each of the five folds equal weight. All 80 training trips retained their published fold assignments. Median imputation fitted within each fold. The search read only training-trip features and labels.
-
-| Hyperparameter | Search space | Reason |
+| Hyperparameter | Values searched | Reason |
 |---|---|---|
-| Trees | 32–96, increments of 16 | Compare ensemble stability against training and scoring cost within the ten-trial budget. |
-| Maximum depth | 12–26, integer | Span shallower and deeper interactions between distance, heading and movement. |
-| Minimum samples per leaf | 1–12, integer on a log scale | Compare fine splits with more regularised probability estimates. |
-| Bootstrap sample fraction per tree | 0.2–0.8, increments of 0.1 | Vary the number of training examples per tree, tree diversity and runtime. |
+| Trees | 32, 48, 64 | Test whether a smaller ensemble can preserve candidate rankings and reduce scoring cost. |
+| Maximum depth | Integers from 14 to 26 | Vary how finely trees can model interactions between GPS movement and road geometry. |
+| Minimum samples per leaf | Integers from 1 to 12, log sampled | Test the trade-off between local detail and more stable probability estimates. |
+| Bootstrap fraction per tree | 0.15 to 0.45 in steps of 0.05 | Vary tree diversity and the cost of fitting each tree. |
 
-We used Optuna 4.9.0 with a seeded Tree-structured Parzen Estimator (TPE). The first three configurations established observations for the sampler. The remaining seven were proposed using previous training-fold results. All ten configurations received all five validation folds. Candidate generation, features, prediction rule and the 0.5 candidate-classification threshold remained fixed. The original forest (100 trees, depth 16, minimum leaf size 3, full-size bootstrap samples) was measured as a separate control. The finite search gives the best observed configuration in this space.
+Optuna’s Tree-structured Parzen Estimator used seed 42. Three initial random trials informed seven Bayesian proposals. Every trial received the same five folds. Trial 4 (numbered from zero) won with **64 trees, depth 14, minimum leaf size 5 and a 45% bootstrap sample**. Its fold Top-1 scores were 94.52%, 96.91%, 91.32%, 90.84% and 95.32%. We froze those settings, reproduced the five held-out scores, refitted the winner on all 80 training trips, and scored the ten student-test trips. The evaluator partition was excluded. [All ten trials, parameters, scores and durations](../results/experiments/models/random_forest_gps_context_tuned/trials.csv) · [Winning configuration](../results/experiments/models/random_forest_gps_context_tuned/best.json)
 
-## Search and refit
+![Grouped validation Top-1 for the ten GPS-context forest trials, with the untuned forest as a reference](figures/context_forest_trials.png)
 
-Best trial **5** (zero-based trial ID) used **96 trees**, **depth 18**, **minimum leaf size 12** and a **20% bootstrap sample**. Its mean validation Top-1 was 84.48%. Its five fold scores were 89.87%, 91.29%, 81.92%, 72.25%, 87.05%. We froze these parameters, regenerated out-of-fold candidate scores, refitted on all 80 training trips, and scored the ten student-test trips with the saved model. The evaluator partition was excluded throughout.
+## Tuned versus untuned on the same trips
 
-![Validation Top-1 for each trial and the running best](figures/random_forest_tuning.png)
+| Metric | Untuned GPS-context forest | Tuned GPS-context forest |
+|---|---:|---:|
+| Mean grouped validation Top-1 | 93.80% | 93.78% |
+| Student-test observation Top-1 | 12,716 / 13,390 (94.97%) | 12,718 / 13,390 (94.98%) |
+| Student-test candidate accuracy | 98.15% | 98.12% |
+| Macro precision / recall / F1 | 96.99% / 96.99% / 96.99% | 96.96% / 96.89% / 96.93% |
+| Candidate log loss | 0.0485 | 0.0501 |
+| Final fit on 80 trips | 82.12 s | 26.52 s |
 
-## Tuned versus untuned
+The 50 search fits and validation took 10.82 minutes. The full classifier experiment took 13.23 minutes including feature preparation, regeneration of held-out probabilities, final fitting and student-test scoring. Reloading the saved classifier reproduced all 113,648 student-test candidate probabilities. The slightly lower validation accuracy and higher log loss give little evidence that tuning improved generalisation. The gain from GPS context itself was much larger. [Untuned measurements](../results/experiments/random_forest_gps_context/comparison.json) · [Tuned measurements and confusion matrix](../results/experiments/models/random_forest_gps_context_tuned/metrics.json) · [Selected fitted pipeline](../results/experiments/models/random_forest_gps_context_tuned/model.joblib)
 
-Both configurations below ran on the same machine using scikit-learn 1.9.1, seed 42, five workers, the same data fingerprint, and identical fold assignments. The original Section 6 run recorded 84.46% mean CV Top-1 and 89.28% student-test Top-1 on scikit-learn 1.9.0. The table uses its freshly reproduced configuration for the paired control. Percent metrics show percentage-point differences; loss and time show absolute differences.
+## Earlier eight-feature control
 
-| Metric | Untuned | Tuned | Change |
-|---|---:|---:|---:|
-| Mean-fold observation Top-1 | 84.47 | 84.48 | +0.01 |
-| Pooled out-of-fold candidate macro F1 | 88.37 | 88.18 | -0.19 |
-| Student-test observation Top-1 | 89.28 | 89.18 | -0.10 |
-| Student-test candidate accuracy | 94.87 | 94.82 | -0.05 |
-| Student-test candidate macro F1 | 91.57 | 91.45 | -0.13 |
-| Student-test candidate log loss | 0.1318 | 0.1346 | +0.0028 |
-| Final fit time (s) | 25.4951 | 7.3354 | -18.1597 |
-| Student-test scoring time (s) | 0.2362 | 0.2016 | -0.0346 |
+The initial search used the same grouped Top-1 objective and ten TPE trials on the original features. It selected 96 trees, depth 18, minimum leaf size 12 and a 20% bootstrap sample. In its matched control run, validation Top-1 changed from 84.47% to 84.48% and student-test Top-1 fell from 89.28% to 89.18%. That search took 6.57 minutes. Its saved artifact uses the earlier runner’s `final` identifier. The selected 27-feature model uses `random_forest_gps_context_tuned`. [Earlier search trials](../results/tuning/random_forest/trials.csv) · [Matched eight-feature comparison](../results/tuning/random_forest/comparison.json)
 
-The optimisation objective increased by 0.01 percentage points. Selection over these folds makes the winning CV score a development estimate. Only the separate student-test comparison measures the transfer of that choice to other development trips.
-
-## Computational cost and evidence
-
-The Bayesian search used **50 fold fits** and took **6.57 minutes** including search input preparation. The complete experiment took **9.42 minutes** including the independent control, selected-configuration validation, final fits and scoring (macOS-27.0-arm64-arm-64bit). Classifier timings exclude candidate generation and sequence decoding.
-
-Run `PYTHONPATH=src python -m pathsnap_ml.tune_random_forest --workspace .` from the repository root to reproduce this experiment. See the [trial log with parameters, fold scores and durations](../results/tuning/random_forest/trials.csv), [winning configuration](../results/tuning/random_forest/best.json), [paired metrics](../results/tuning/random_forest/comparison.json), [final scores and diagnostics](../results/baseline/models/final/), and [fitted classifier](../artifacts/final/).
+To reproduce the selected classifier experiment from the repository root, run `PYTHONPATH=src python -m pathsnap_ml.tune_context_routes`. It also evaluates the strict decoder. Section 8 gives the subsequent command for the selected decoder with a tuned segment-break cost.
