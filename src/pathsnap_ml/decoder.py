@@ -14,6 +14,9 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
     for candidate in joined.sort_values(["obs_id", "candidate_arc_id"]).itertuples(index=False):
         groups[candidate.obs_id].append(candidate)
     router = Router(nodes,arcs,metadata)
+    break_penalty = config.get("break_penalty")
+    if break_penalty is not None and (not np.isfinite(break_penalty) or break_penalty <= 0):
+        raise ValueError("break_penalty must be finite and positive")
     chosen = {}
     run, values, back = [], [], []
     breaks = {}
@@ -59,6 +62,10 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
                         distance,_ = router.between(left,right,limit)
                         if np.isfinite(distance):
                             total[i,j] = values[-1][i]-abs(distance-displacement)/config["beta_m"]
+                        elif break_penalty is not None:
+                            # A new route segment may begin here. Traceback keeps the
+                            # selected road pair and the route export records the break.
+                            total[i,j] = values[-1][i] - break_penalty
                 parents = total.argmax(axis=0)
                 scores_next = total[parents,np.arange(len(frame))]+emission
                 if np.isfinite(scores_next).any():

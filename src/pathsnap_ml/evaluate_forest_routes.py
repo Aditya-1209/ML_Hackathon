@@ -18,7 +18,7 @@ MODEL = "random_forest"
 BETAS = (20, 50, 100)
 
 
-def score_training_trip(item, root, cv_file, base_config, model_id):
+def score_training_trip(item, root, cv_file, base_config, model_id, betas=BETAS):
     trip_id, fold_id = item
     scores = pd.read_parquet(cv_file, filters=[("trip_id", "==", trip_id)])
     if scores.empty or not scores.model_id.eq(model_id).all() or not scores.fold_id.eq(fold_id).all():
@@ -30,7 +30,7 @@ def score_training_trip(item, root, cv_file, base_config, model_id):
     eligible = obs.loc[obs.valid, ["trip_id", "obs_id"]].merge(
         labels[labels.label_status.eq("assigned")], on=["trip_id", "obs_id"], validate="one_to_one")
     records = []
-    for beta in BETAS:
+    for beta in betas:
         predictions, _ = decode_trip(obs, trip["nodes"], trip["arcs"], candidates, scores,
                                      trip["metadata"], {**base_config, "beta_m": beta})
         checked = eligible.merge(predictions, on=["trip_id", "obs_id"], how="left", validate="one_to_one")
