@@ -1,0 +1,2 @@
+trip_id,split,observations,invalid,missing_lon,missing_lat,missing_timestamp,time_reversals,duplicate_times,intervals,one_second_steps,gaps,max_gap_s,gps_length_m,lon_min,lon_max,lat_min,lat_max,nodes,arcs,zero_length,weak_components,isolated_nodes,reference_steps,directed_reference_pairs,reference_pairs,reference_available,track_bytes,nodes_bytes,arcs_bytes
+00000001,train,1315,0,0,0,0,0,0,1314,1289,1,16.0,50208.95468142163,8.570524,8.64786,49.844053,50.211882,88809,165790,8,175,0,525,524,524,True,40975,1687371,1948474

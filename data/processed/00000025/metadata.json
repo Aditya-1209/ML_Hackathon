@@ -1,0 +1,18 @@
+{
+  "contract_version": "pathsnap-ml-v1",
+  "trip_id": "00000025",
+  "split": "train",
+  "crs_wkt": "PROJCRS[\"WGS 84 / UTM zone 14N\",BASEGEOGCRS[\"WGS 84\",ENSEMBLE[\"World Geodetic System 1984 ensemble\",MEMBER[\"World Geodetic System 1984 (Transit)\"],MEMBER[\"World Geodetic System 1984 (G730)\"],MEMBER[\"World Geodetic System 1984 (G873)\"],MEMBER[\"World Geodetic System 1984 (G1150)\"],MEMBER[\"World Geodetic System 1984 (G1674)\"],MEMBER[\"World Geodetic System 1984 (G1762)\"],MEMBER[\"World Geodetic System 1984 (G2139)\"],MEMBER[\"World Geodetic System 1984 (G2296)\"],ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ENSEMBLEACCURACY[2.0]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],ID[\"EPSG\",4326]],CONVERSION[\"UTM zone 14N\",METHOD[\"Transverse Mercator\",ID[\"EPSG\",9807]],PARAMETER[\"Latitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8801]],PARAMETER[\"Longitude of natural origin\",-99,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"Scale factor at natural origin\",0.9996,SCALEUNIT[\"unity\",1],ID[\"EPSG\",8805]],PARAMETER[\"False easting\",500000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1]],USAGE[SCOPE[\"Navigation and medium accuracy spatial referencing.\"],AREA[\"Between 102\u00b0W and 96\u00b0W, northern hemisphere between equator and 84\u00b0N, onshore and offshore. Canada - Manitoba; Nunavut; Saskatchewan. Mexico. United States (USA).\"],BBOX[0,-102,84,-96]],ID[\"EPSG\",32614]]",
+  "graph_directed": true,
+  "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+  "input_hashes": {
+    "track": "0b73fe4a8ce690219b21d0eb570cd01ec6519b14d29cfae522204a0103809038",
+    "nodes": "44fb6cae2eb758fe9dd3874a2a551c15c5774b8b255c1209a618581d17fa672d",
+    "arcs": "c080b31e853706d39f4fe20aebef2b71c5cc085c32377997a924e349ebc9c519"
+  },
+  "cleaning_config": {
+    "graph_directed": true,
+    "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+    "gap_threshold_s": 10
+  }
+}

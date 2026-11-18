@@ -1,0 +1,3 @@
+graph_directed: true
+directionality_basis: "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions."
+gap_threshold_s: 10

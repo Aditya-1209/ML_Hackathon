@@ -1,0 +1,18 @@
+{
+  "contract_version": "pathsnap-ml-v1",
+  "trip_id": "00000066",
+  "split": "train",
+  "crs_wkt": "PROJCRS[\"WGS 84 / UTM zone 39N\",BASEGEOGCRS[\"WGS 84\",ENSEMBLE[\"World Geodetic System 1984 ensemble\",MEMBER[\"World Geodetic System 1984 (Transit)\"],MEMBER[\"World Geodetic System 1984 (G730)\"],MEMBER[\"World Geodetic System 1984 (G873)\"],MEMBER[\"World Geodetic System 1984 (G1150)\"],MEMBER[\"World Geodetic System 1984 (G1674)\"],MEMBER[\"World Geodetic System 1984 (G1762)\"],MEMBER[\"World Geodetic System 1984 (G2139)\"],MEMBER[\"World Geodetic System 1984 (G2296)\"],ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ENSEMBLEACCURACY[2.0]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],ID[\"EPSG\",4326]],CONVERSION[\"UTM zone 39N\",METHOD[\"Transverse Mercator\",ID[\"EPSG\",9807]],PARAMETER[\"Latitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8801]],PARAMETER[\"Longitude of natural origin\",51,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"Scale factor at natural origin\",0.9996,SCALEUNIT[\"unity\",1],ID[\"EPSG\",8805]],PARAMETER[\"False easting\",500000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1]],USAGE[SCOPE[\"Navigation and medium accuracy spatial referencing.\"],AREA[\"Between 48\u00b0E and 54\u00b0E, northern hemisphere between equator and 84\u00b0N, onshore and offshore. Azerbaijan. Bahrain. Islamic Republic of Iran. Iraq. Kazakhstan. Kuwait. Oman. Qatar. Russian Federation. Saudi Arabia. Somalia. Turkmenistan. United Arab Emirates. Yemen.\"],BBOX[0,48,84,54]],ID[\"EPSG\",32639]]",
+  "graph_directed": true,
+  "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+  "input_hashes": {
+    "track": "827864560b6f9ef256c08687b3cdeac2b9e0dd69bb422a4df6a26af02d3dc90d",
+    "nodes": "ac1a616fd9c52ddee61f4955e3aa319e2603f30c03749c149650105e10e92c60",
+    "arcs": "cd83e00e9d193b45a113dc76d769a0059460b24c7f5b280071c336aa8423431a"
+  },
+  "cleaning_config": {
+    "graph_directed": true,
+    "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+    "gap_threshold_s": 10
+  }
+}

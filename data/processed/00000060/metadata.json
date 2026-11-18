@@ -1,0 +1,18 @@
+{
+  "contract_version": "pathsnap-ml-v1",
+  "trip_id": "00000060",
+  "split": "train",
+  "crs_wkt": "PROJCRS[\"WGS 84 / UTM zone 34N\",BASEGEOGCRS[\"WGS 84\",ENSEMBLE[\"World Geodetic System 1984 ensemble\",MEMBER[\"World Geodetic System 1984 (Transit)\"],MEMBER[\"World Geodetic System 1984 (G730)\"],MEMBER[\"World Geodetic System 1984 (G873)\"],MEMBER[\"World Geodetic System 1984 (G1150)\"],MEMBER[\"World Geodetic System 1984 (G1674)\"],MEMBER[\"World Geodetic System 1984 (G1762)\"],MEMBER[\"World Geodetic System 1984 (G2139)\"],MEMBER[\"World Geodetic System 1984 (G2296)\"],ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ENSEMBLEACCURACY[2.0]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],ID[\"EPSG\",4326]],CONVERSION[\"UTM zone 34N\",METHOD[\"Transverse Mercator\",ID[\"EPSG\",9807]],PARAMETER[\"Latitude of natural origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8801]],PARAMETER[\"Longitude of natural origin\",21,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8802]],PARAMETER[\"Scale factor at natural origin\",0.9996,SCALEUNIT[\"unity\",1],ID[\"EPSG\",8805]],PARAMETER[\"False easting\",500000,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",east,ORDER[1],LENGTHUNIT[\"metre\",1]],AXIS[\"(N)\",north,ORDER[2],LENGTHUNIT[\"metre\",1]],USAGE[SCOPE[\"Navigation and medium accuracy spatial referencing.\"],AREA[\"Between 18\u00b0E and 24\u00b0E, northern hemisphere between equator and 84\u00b0N, onshore and offshore. Albania. Belarus. Bosnia and Herzegovina. Bulgaria. Central African Republic. Chad. Croatia. Democratic Republic of the Congo (Zaire). Estonia. Finland. Greece. Hungary. Italy. Kosovo. Latvia. Libya. Lithuania. Montenegro. North Macedonia. Norway, including Svalbard and Bjornoys. Poland. Romania. Russian Federation. Serbia. Slovakia. Sudan. Sweden. Ukraine.\"],BBOX[0,18,84,24]],ID[\"EPSG\",32634]]",
+  "graph_directed": true,
+  "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+  "input_hashes": {
+    "track": "f4e54b0cd5f58be9f04ea05a5fa7b98802cd38a19bcd7110df9121ac3fed8e1d",
+    "nodes": "d82aa7861c1d630bf67a1fd45b95195cc095f2ef515fb6669e8dad80615db356",
+    "arcs": "4be0452a11b646896197474e7f5ab7ef4b7923d22c2afb63abc33c57c88a8c61"
+  },
+  "cleaning_config": {
+    "graph_directed": true,
+    "directionality_basis": "Directed traversal assumption. Training trip 00000001 follows from/to direction for all 524 consecutive reference transitions; the graph contains explicit reverse arcs for many roads. This does not establish legal driving restrictions.",
+    "gap_threshold_s": 10
+  }
+}
