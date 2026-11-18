@@ -72,6 +72,7 @@ def _accuracy(obs, predictions, labels):
 def _map_data(obs, nodes, arcs, route):
     valid = obs.loc[obs.valid].sort_values("order_index")
     node_xy = nodes.set_index("node_id")[["x_m", "y_m"]]
+    node_geo = nodes.set_index("node_id")[["lat", "lon"]]
     roads = arcs.set_index("arc_id")[["from_node_id", "to_node_id"]]
     gps = valid[["x_m", "y_m"]].to_numpy()
     if len(gps):
@@ -84,15 +85,20 @@ def _map_data(obs, nodes, arcs, route):
     start = node_xy.loc[arcs.from_node_id].to_numpy()
     end = node_xy.loc[arcs.to_node_id].to_numpy()
     within = ((np.maximum(start, end) >= lo - pad) & (np.minimum(start, end) <= hi + pad)).all(axis=1)
-    context = np.column_stack([start[within], end[within]])
+    context_edges = arcs.loc[within]
+
+    def lat_lon_edges(edges):
+        return np.stack([node_geo.loc[edges.from_node_id].to_numpy(),
+                         node_geo.loc[edges.to_node_id].to_numpy()], axis=1).round(7).tolist()
+
     segments = []
     for run in route["runs"]:
         if not run["arc_ids"]:
             continue
         edges = roads.loc[run["arc_ids"]]
-        segments.append(np.column_stack([node_xy.loc[edges.from_node_id].to_numpy(),
-                                         node_xy.loc[edges.to_node_id].to_numpy()]).round(2).tolist())
-    return {"gps": gps.round(2).tolist(), "roads": context.round(2).tolist(), "runs": segments}
+        segments.append(lat_lon_edges(edges))
+    return {"gps": valid[["lat", "lon"]].to_numpy().round(7).tolist(),
+            "roads": lat_lon_edges(context_edges), "runs": segments}
 
 
 def create_app(workspace=WORKSPACE, evaluator_root=None, model_bundle=None, origins=(), decoder_config=None):

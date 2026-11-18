@@ -3,54 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f3f5f0">
-  <title>PathSnap | Route evaluation</title>
+  <meta name="theme-color" content="#fff">
+  <title>PathSnap · Route evaluation</title>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="styles.css">
-  <script src="app.js" type="module"></script>
+  <script src="vendor/leaflet/leaflet.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <header class="site-header"><div class="header-inner">
-    <a class="brand" href="./" aria-label="PathSnap home"><span class="brand-icon" aria-hidden="true"><span></span></span>PathSnap</a>
-    <span id="connection" class="connection" role="status"><i></i> Connecting</span>
-  </div></header>
-  <main>
-    <div class="intro">
-      <div><h1>Route evaluation</h1><p>Match GPS observations to the road network, one trip at a time.</p></div>
-      <span id="mode-badge" class="mode-badge" hidden>Placeholder model</span>
-    </div>
-    <div class="workspace">
-      <aside class="trip-panel">
-        <div class="trip-heading"><h2>Trips</h2><span id="trip-count"></span></div>
-        <div id="trip-list" class="trip-list" role="group" aria-label="Available trips"></div>
-        <div class="trip-footer"><button id="evaluate" class="primary" disabled>Evaluate trip <span aria-hidden="true">→</span></button></div>
-      </aside>
-      <section class="result-panel" aria-label="Evaluation result">
-        <div class="map-header">
-          <div><h2 id="map-title">Route map</h2><p id="map-meta" aria-live="polite">Select a trip to view its route.</p></div>
-        </div>
-        <div class="map" id="map">
-          <canvas id="canvas" aria-label="Road network, GPS observations, and matched route"></canvas>
-          <div id="map-message" class="map-message" role="status">Loading available trips…</div>
-          <div class="map-controls" aria-label="Map controls">
-            <button id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
-            <button id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
-            <button id="reset-view" aria-label="Reset map view" title="Reset view">⤢</button>
-          </div>
-          <div class="legend">
-            <label><input type="checkbox" data-layer="roads" checked><i class="swatch road"></i>Road network</label>
+  <header class="topbar">
+    <a href="./" class="brand" aria-label="PathSnap home"><span class="brand-mark" aria-hidden="true"></span>PathSnap</a>
+    <div class="status"><span id="mode-badge" hidden>Placeholder model</span><span id="connection" role="status">Connecting…</span></div>
+  </header>
+  <main class="app">
+    <aside class="sidebar" aria-label="Trip controls">
+      <div class="trip-controls">
+        <h1>Route evaluation</h1>
+        <label for="trip-select" class="field-label">Trip</label>
+        <select id="trip-select" disabled><option>Loading trips…</option></select>
+        <button id="evaluate" class="primary" disabled>Evaluate trip</button>
+      </div>
+      <div class="results" aria-live="polite">
+        <h2 id="result-title">Results</h2>
+        <p id="map-meta">Select a trip to see its matched route.</p>
+        <dl>
+          <div><dt>Road-match accuracy</dt><dd id="accuracy">—</dd><span id="accuracy-detail">Assigned reference points</span></div>
+          <div><dt>Route continuity</dt><dd id="continuity">—</dd><span>Feasible adjacent matches</span></div>
+          <div><dt>Label coverage</dt><dd id="coverage">—</dd><span id="coverage-detail">Assigned GPS points</span></div>
+        </dl>
+        <p id="notice" class="notice">Accuracy uses reference-derived labels.</p>
+      </div>
+    </aside>
+    <section class="map-panel" aria-label="Route map">
+      <div id="map" aria-label="Interactive street map"></div>
+      <div class="map-toolbar">
+        <button id="fit" class="map-button" type="button" disabled>Fit route</button>
+        <details class="layers">
+          <summary class="map-button">Layers</summary>
+          <div class="layer-menu">
+            <label><input type="checkbox" data-layer="basemap" checked>Street map</label>
+            <label><input type="checkbox" data-layer="roads"><i class="swatch roads"></i>Trip road network</label>
             <label><input type="checkbox" data-layer="gps" checked><i class="swatch gps"></i>GPS points</label>
-            <label><input type="checkbox" data-layer="runs" checked><i class="swatch route"></i>Matched route</label>
+            <label><input type="checkbox" data-layer="runs" checked><i class="swatch runs"></i>Matched route</label>
           </div>
-          <span id="map-scale" class="scale"></span>
-        </div>
-        <div class="metrics" aria-live="polite">
-          <div><span>Road match accuracy</span><strong id="accuracy">—</strong><small id="accuracy-detail">Assigned reference labels</small></div>
-          <div><span>Route continuity</span><strong id="continuity">—</strong><small>Feasible adjacent matches</small></div>
-          <div><span>Label coverage</span><strong id="coverage">—</strong><small id="coverage-detail">Assigned GPS points</small></div>
-        </div>
-      </section>
-    </div>
-    <p id="notice" class="notice" role="status">Measurements use reference-derived labels where available.</p>
+        </details>
+      </div>
+      <div id="map-message" class="map-message" role="status">Loading trips…</div>
+      <div id="basemap-notice" class="basemap-notice" role="status" hidden>Street tiles unavailable. Showing the trip road network.</div>
+    </section>
   </main>
 </body>
 </html>

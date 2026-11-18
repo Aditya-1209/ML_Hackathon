@@ -2,13 +2,49 @@ const el = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
 const api = (query.get("api") || "").replace(/\/$/, "");
 if (api && !/^https?:\/\//i.test(api)) throw new Error("The API address must be HTTP or HTTPS.");
-const canvas = el("canvas");
-const ctx = canvas.getContext("2d");
-let selected, pending = false, result, camera, drag;
-const layers = Object.fromEntries([...document.querySelectorAll("[data-layer]")]
+const select = el("trip-select");
+const inputs = Object.fromEntries([...document.querySelectorAll("[data-layer]")]
   .map(input => [input.dataset.layer, input]));
-const percentage = number => number == null ? "â€”" : (100 * number).toFixed(2) + "%";
-const integer = number => new Intl.NumberFormat("en").format(number);
+const percent = value => value == null ? "—" : (100 * value).toFixed(2) + "%";
+const integer = value => new Intl.NumberFormat().format(value);
+const map = L.map("map", {preferCanvas: true}).setView([48.7, 9.1], 5);
+L.control.scale({imperial: false, position: "bottomleft"}).addTo(map);
+map.createPane("gps-points").style.zIndex = "410";
+map.createPane("matched-route").style.zIndex = "420";
+const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+});
+const overlays = {roads: L.layerGroup(), gps: L.layerGroup(), runs: L.layerGroup()};
+let bounds, pending = false, hasRoute = false, tileFailed = false;
+
+function syncLayers() {
+  for (const [key, group] of Object.entries(overlays)) {
+    if (inputs[key].checked || (key === "roads" && (tileFailed || !inputs.basemap.checked)))
+      group.addTo(map);
+    else map.removeLayer(group);
+  }
+}
+function syncBasemap() {
+  if (inputs.basemap.checked) tiles.addTo(map);
+  else { map.removeLayer(tiles); el("basemap-notice").hidden = true; }
+  syncLayers();
+}
+tiles.on("tileerror", () => {
+  tileFailed = true;
+  el("basemap-notice").hidden = !inputs.basemap.checked;
+  syncLayers();
+});
+tiles.on("tileload", () => {
+  if (!tileFailed) return;
+  tileFailed = false;
+  el("basemap-notice").hidden = true;
+  syncLayers();
+});
+inputs.basemap.checked = query.get("basemap") !== "off";
+inputs.basemap.addEventListener("change", syncBasemap);
+for (const key of Object.keys(overlays)) inputs[key].addEventListener("change", syncLayers);
+syncBasemap();
 
 async function request(path, options) {
   const response = await fetch(api + path, options);
@@ -17,138 +53,67 @@ async function request(path, options) {
   return data;
 }
 
-function setConnection(label, status) {
-  const connection = el("connection");
-  connection.className = "connection " + status;
-  connection.replaceChildren(document.createElement("i"), " " + label);
-}
-
 function message(text) {
   el("map-message").textContent = text;
   el("map-message").hidden = !text;
 }
 
-function setSelection(id) {
-  selected = id;
-  for (const button of el("trip-list").children)
-    button.setAttribute("aria-pressed", String(button.dataset.id === id));
-  el("evaluate").disabled = pending;
+function fitRoute() {
+  if (bounds?.isValid()) map.fitBounds(bounds, {padding: [35, 35], maxZoom: 17, animate: false});
 }
+el("fit").onclick = fitRoute;
+new ResizeObserver(() => map.invalidateSize({pan:false})).observe(el("map"));
 
-function resetCamera() {
-  if (!result) return;
-  const xs = [], ys = [];
-  for (const [x,y] of result.map.gps) { xs.push(x); ys.push(y); }
-  for (const run of result.map.runs) for (const [x,y,u,v] of run) { xs.push(x,u); ys.push(y,v); }
-  if (!xs.length) for (const [x,y,u,v] of result.map.roads) { xs.push(x,u); ys.push(y,v); }
-  const [xmin, xmax] = xs.reduce(([lo,hi], x) => [Math.min(lo,x),Math.max(hi,x)],[Infinity,-Infinity]);
-  const [ymin, ymax] = ys.reduce(([lo,hi], y) => [Math.min(lo,y),Math.max(hi,y)],[Infinity,-Infinity]);
-  if (!xs.length) { camera = undefined; draw(); return; }
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  const scale = Math.max(.0001, Math.min((w - 105) / Math.max(xmax-xmin, 50),
-                                       (h - 100) / Math.max(ymax-ymin, 50)));
-  camera = {x:(xmin+xmax)/2, y:(ymin+ymax)/2, scale};
-  draw();
-}
-
-function draw() {
-  const w = canvas.clientWidth, h = canvas.clientHeight, ratio = Math.min(devicePixelRatio || 1, 2);
-  if (canvas.width !== Math.round(w * ratio) || canvas.height !== Math.round(h * ratio)) {
-    canvas.width = Math.round(w * ratio); canvas.height = Math.round(h * ratio);
+function showRoute(data) {
+  const coordinates = data.map;
+  for (const group of Object.values(overlays)) group.clearLayers();
+  const polyline = (edges, style) => L.polyline(edges, {interactive: false, ...style});
+  polyline(coordinates.roads, {color: "#697a72", weight: 1, opacity: .65}).addTo(overlays.roads);
+  for (const run of coordinates.runs) {
+    polyline(run, {pane: "matched-route", color: "#fff", weight: 7, opacity: .87}).addTo(overlays.runs);
+    polyline(run, {pane: "matched-route", color: "#1764c0", weight: 4, opacity: .98}).addTo(overlays.runs);
   }
-  ctx.setTransform(ratio,0,0,ratio,0,0);
-  ctx.fillStyle = "#11251e"; ctx.fillRect(0,0,w,h);
-  ctx.strokeStyle = "#1c352b"; ctx.lineWidth = 1; ctx.beginPath();
-  for (let x = 8; x < w; x += 28) { ctx.moveTo(x,0); ctx.lineTo(x,h); }
-  for (let y = 8; y < h; y += 28) { ctx.moveTo(0,y); ctx.lineTo(w,y); }
-  ctx.stroke();
-  el("map-scale").hidden = !camera;
-  if (!camera || !result) return;
-  const scale = camera.scale;
-  const x = value => (value-camera.x)*scale + w/2;
-  const y = value => h/2 - (value-camera.y)*scale;
-  const lines = (segments,color,width) => {
-    ctx.beginPath();
-    for (const [ax,ay,bx,by] of segments) { ctx.moveTo(x(ax),y(ay)); ctx.lineTo(x(bx),y(by)); }
-    ctx.strokeStyle=color; ctx.lineWidth=width; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.stroke();
-  };
-  if (layers.roads.checked) lines(result.map.roads,"#567565",1.3);
-  if (layers.runs.checked) for (const run of result.map.runs) {
-    lines(run,"#285b48",8); lines(run,"#73efb5",3.7);
+  const stride = Math.max(1, Math.ceil(coordinates.gps.length / 3000));
+  for (let i = 0; i < coordinates.gps.length; i += stride) {
+    L.circleMarker(coordinates.gps[i], {pane:"gps-points", radius:2, stroke:false, fillColor:"#e68a18",
+      fillOpacity:.75, interactive:false}).addTo(overlays.gps);
   }
-  if (layers.gps.checked) {
-    ctx.fillStyle="#f7bd66c9"; ctx.beginPath();
-    const step = Math.max(1,Math.ceil(result.map.gps.length/3000));
-    for (let i=0; i<result.map.gps.length; i+=step) {
-      const [a,b]=result.map.gps[i]; const px=x(a), py=y(b);
-      ctx.moveTo(px+1.6,py);ctx.arc(px,py,1.6,0,2*Math.PI);
-    }
-    ctx.fill();
-  }
-  const metres = Math.max(1,Math.round(85/scale));
-  el("map-scale").textContent = metres >= 1000 ? (metres/1000).toFixed(1)+" km" : metres+" m";
+  bounds = L.latLngBounds(coordinates.gps);
+  for (const run of coordinates.runs) for (const [a,b] of run) bounds.extend(a).extend(b);
+  if (!bounds.isValid()) for (const [a,b] of coordinates.roads) bounds.extend(a).extend(b);
+  hasRoute = bounds.isValid();
+  el("fit").disabled = !hasRoute;
+  fitRoute();
 }
-
-function zoom(factor) {
-  if (!camera) return;
-  camera.scale = Math.min(40,Math.max(.0001,camera.scale*factor));
-  draw();
-}
-el("zoom-in").onclick=()=>zoom(1.35);
-el("zoom-out").onclick=()=>zoom(1/1.35);
-el("reset-view").onclick=resetCamera;
-for (const input of Object.values(layers)) input.addEventListener("change",draw);
-canvas.addEventListener("wheel",event=>{if(camera){event.preventDefault();zoom(event.deltaY<0?1.18:1/1.18);}},{passive:false});
-canvas.addEventListener("pointerdown",event=>{
-  if (!camera) return;
-  drag = {pointer:event.pointerId,x:event.clientX,y:event.clientY};
-  canvas.setPointerCapture(event.pointerId);
-});
-canvas.addEventListener("pointermove",event=>{
-  if (!drag || drag.pointer!==event.pointerId) return;
-  camera.x-=(event.clientX-drag.x)/camera.scale;
-  camera.y+=(event.clientY-drag.y)/camera.scale;
-  drag.x=event.clientX;drag.y=event.clientY;draw();
-});
-for (const event of ["pointerup","pointercancel","lostpointercapture"])
-  canvas.addEventListener(event,()=>{drag=undefined;});
-new ResizeObserver(draw).observe(canvas);
 
 async function evaluate() {
-  if (!selected || pending) return;
-  const trip = selected;
+  if (!select.value || pending) return;
   pending = true;
-  for (const button of el("trip-list").children) button.disabled = true;
-  el("evaluate").disabled = true;
-  result = undefined; camera = undefined; draw();
-  for (const id of ["accuracy","continuity","coverage"]) el(id).textContent = "â€”";
-  el("accuracy-detail").textContent = "Assigned reference labels";
-  el("coverage-detail").textContent = "Assigned GPS points";
-  el("map-title").textContent = "Trip " + trip;
-  el("map-meta").textContent = "Waiting for the API";
-  message("Evaluating trip " + trip + "â€¦");
+  select.disabled = el("evaluate").disabled = true;
+  const trip = select.value;
+  message("Evaluating trip " + trip + "…");
   try {
-    result = await request("/api/evaluate",{method:"POST",headers:{"Content-Type":"application/json"},
-                                           body:JSON.stringify({trip_id:trip})});
-    const m = result.metrics;
-    el("map-meta").textContent = integer(m.valid)+" GPS points Â· "+integer(result.route_runs)+" route runs Â· "+
-      (result.decoder==="hmm"?"HMM / Viterbi":"Geometry preview");
-    el("accuracy").textContent = percentage(m.accuracy);
-    el("continuity").textContent = percentage(m.continuity);
-    el("coverage").textContent = percentage(m.valid ? m.assigned/m.valid : null);
-    el("accuracy-detail").textContent = integer(m.correct)+" of "+integer(m.assigned)+" assigned points";
-    el("coverage-detail").textContent = integer(m.assigned)+" of "+integer(m.valid)+" valid points";
-    el("notice").textContent = result.mode==="placeholder"
-      ? "Placeholder scores use distance and heading. Measurements are for the demo."
+    const data = await request("/api/evaluate", {method:"POST", headers:{"Content-Type":"application/json"},
+                                               body:JSON.stringify({trip_id:trip})});
+    const metrics = data.metrics;
+    el("result-title").textContent = "Trip " + data.trip_id;
+    el("map-meta").textContent = integer(metrics.valid)+" GPS points · "+
+      (data.decoder === "hmm" ? "HMM / Viterbi" : "Geometry preview");
+    el("accuracy").textContent = percent(metrics.accuracy);
+    el("continuity").textContent = percent(metrics.continuity);
+    el("coverage").textContent = percent(metrics.valid ? metrics.assigned/metrics.valid : null);
+    el("accuracy-detail").textContent = integer(metrics.correct)+" of "+integer(metrics.assigned)+" assigned points";
+    el("coverage-detail").textContent = integer(metrics.assigned)+" of "+integer(metrics.valid)+" valid points";
+    el("notice").textContent = data.mode === "placeholder"
+      ? "Development preview with distance and heading scores."
       : "Accuracy compares the decoded road to assigned reference-derived labels.";
-    message(""); resetCamera();
+    showRoute(data);
+    message(hasRoute ? "" : "No route geometry available.");
   } catch (error) {
-    el("map-meta").textContent = "Evaluation unavailable";
     message(error.message);
   } finally {
     pending = false;
-    for (const button of el("trip-list").children) button.disabled = false;
-    el("evaluate").disabled = !selected;
+    select.disabled = el("evaluate").disabled = false;
   }
 }
 
@@ -156,23 +121,18 @@ el("evaluate").onclick = evaluate;
 async function initialize() {
   try {
     const data = await request("/api/trips");
-    setConnection("API connected","online");
+    el("connection").textContent = "API connected";
+    el("connection").className = "online";
     el("mode-badge").hidden = data.mode !== "placeholder";
-    el("trip-count").textContent = data.trip_count+" available";
-    for (const {trip_id} of data.trips) {
-      const button = document.createElement("button");
-      button.type="button"; button.dataset.id=trip_id;button.textContent="Trip "+trip_id;
-      button.onclick=()=>setSelection(trip_id);
-      el("trip-list").append(button);
-    }
+    select.replaceChildren(...data.trips.map(({trip_id}) => new Option(trip_id, trip_id)));
     if (!data.trips.length) { message("No trips are available."); return; }
-    setSelection(data.trips[0].trip_id);
-    message("Select a trip and run evaluation.");
+    select.disabled = el("evaluate").disabled = false;
+    message("Choose a trip to view its route.");
     if (data.mode === "placeholder" && data.partition === "student_test") await evaluate();
   } catch {
-    setConnection("API offline","offline");
+    el("connection").textContent = "API offline";
+    el("connection").className = "offline";
     message("Unable to reach the PathSnap API.");
-    el("notice").textContent = "Start the API or check the API address for this page.";
   }
 }
 initialize();

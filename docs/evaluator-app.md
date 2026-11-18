@@ -28,6 +28,13 @@ on that laptop and open `http://localhost:8080/?api=http%3A%2F%2F<laptop-1-ip>%3
 Before starting the API, set `PATHSNAP_UI_ORIGINS` on Laptop 1 to
 `http://localhost:8080`. Keep the UI and API URLs on the same network.
 
+## Street map and offline display
+
+The app uses a local Leaflet build with OpenStreetMap street tiles. For the
+offline demo, add `?basemap=off` to the browser URL, or turn off **Street map**
+from **Layers**. The trip road network still renders from API data and the
+map controls still work. Only the street tiles require internet access.
+
 ## Connect the final model and evaluator data
 
 On Laptop 1, set the two paths, then restart the same API command:
