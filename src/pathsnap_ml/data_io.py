@@ -36,8 +36,9 @@ def check_trip_id(trip):
         raise ValueError(f"Unsafe trip ID {trip!r}")
 
 
-def raw_file(root, row, kind):
-    if row.split not in SPLITS:
+def raw_file(root, row, kind, *, allow_evaluator=False):
+    permitted = (*SPLITS, "evaluator_test") if allow_evaluator else SPLITS
+    if row.split not in permitted:
         raise ValueError("Development loaders accept only train and student_test")
     check_trip_id(row.trip_id)
     path = (root / getattr(row, f"{kind}_path")).resolve()
@@ -91,8 +92,8 @@ def observations(path, trip, projection):
     return df[["trip_id","obs_id","order_index","timestamp_s","lon","lat","x_m","y_m","valid","invalid_reason"]]
 
 
-def prepare_trip(root, row, config):
-    files = {k: raw_file(root,row,k) for k in ("track","nodes","arcs")}
+def prepare_trip(root, row, config, *, allow_evaluator=False):
+    files = {k: raw_file(root, row, k, allow_evaluator=allow_evaluator) for k in ("track","nodes","arcs")}
     coords = numeric_matrix(files["nodes"], 2, float)
     lon, lat = coords.T
     if not np.isfinite(coords).all() or (abs(lon)>180).any() or (abs(lat)>90).any():
@@ -112,8 +113,9 @@ def prepare_trip(root, row, config):
     return dict(observations=obs,nodes=nodes,arcs=arcs,metadata=meta)
 
 
-def read_raw_reference(root,row,arc_count):
-    ids = numeric_matrix(raw_file(root,row,"route"),1,np.int64).ravel()
+def read_raw_reference(root,row,arc_count, *, allow_evaluator=False):
+    path = raw_file(root, row, "route", allow_evaluator=allow_evaluator)
+    ids = numeric_matrix(path,1,np.int64).ravel()
     if (ids<0).any() or (ids>=arc_count).any():
         raise ValueError(f"{row.trip_id}: reference contains unknown arc ID")
     return pd.DataFrame(dict(trip_id=row.trip_id, route_pos=np.arange(len(ids)), arc_id=ids))

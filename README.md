@@ -1,5 +1,7 @@
 # PathSnap runnable ML project
 
+[Run the evaluator API and UI](docs/evaluator-app.md) with the development placeholder or your selected model bundle.
+
 Use Python 3.12. Install with `python -m pip install -r requirements.txt`. Every standalone ZIP includes the same prepared development data and shared runtime, so each owner can train immediately. Keep each ZIP in a separate extracted folder outside the Git clone.
 
 Run the script matching your assignment.
