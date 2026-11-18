@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+data/reference/
+results/decoder/**/sample_map.html
+results/smoke/
+artifacts/smoke/
+*.sqlite3
