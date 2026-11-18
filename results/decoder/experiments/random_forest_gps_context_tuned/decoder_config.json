@@ -1,0 +1,32 @@
+{
+  "model_id": "random_forest_gps_context_tuned",
+  "config": {
+    "beta_m": 100,
+    "gap_s": 60,
+    "max_speed_mps": 55,
+    "slack_m": 30,
+    "epsilon": 1e-09
+  },
+  "objective": "pooled training OOF observation Top-1",
+  "trials": [
+    {
+      "beta_m": 20,
+      "correct": 106735,
+      "labelled": 138093,
+      "accuracy": 0.7729211473427328
+    },
+    {
+      "beta_m": 50,
+      "correct": 107016,
+      "labelled": 138093,
+      "accuracy": 0.7749560079077144
+    },
+    {
+      "beta_m": 100,
+      "correct": 107084,
+      "labelled": 138093,
+      "accuracy": 0.7754484296814466
+    }
+  ],
+  "cv_scores_sha256": "72e9d741aa29106b7669865310e51bc65066d173b33429edf00efbf8a86b4a04"
+}

@@ -1,0 +1,133 @@
+{
+  "model_id": "random_forest_gps_context_tuned",
+  "profile": "experiments",
+  "mode": "classifier_only",
+  "split": "student_test",
+  "config": {
+    "beta_m": 100,
+    "gap_s": 60,
+    "max_speed_mps": 55,
+    "slack_m": 30,
+    "epsilon": 1e-09
+  },
+  "accuracy_basis": "reference-derived proxy; coverage restricted to assigned observations",
+  "labelled": 13390,
+  "pointwise_accuracy": 0.9498132935026139,
+  "mean_trip_accuracy": 0.9529650340796569,
+  "exact_trip_match_rate": 0.0,
+  "continuity": 0.9015614392396469,
+  "feasible": 17264,
+  "eligible": 19149,
+  "per_trip": [
+    {
+      "trip_id": "00000000",
+      "correct": 2231,
+      "labelled": 2298,
+      "pointwise_accuracy": 0.9708442123585727,
+      "feasible": 2410,
+      "eligible": 2502,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9632294164668266
+    },
+    {
+      "trip_id": "00000007",
+      "correct": 1236,
+      "labelled": 1276,
+      "pointwise_accuracy": 0.9686520376175548,
+      "feasible": 1239,
+      "eligible": 1353,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9157427937915743
+    },
+    {
+      "trip_id": "00000009",
+      "correct": 554,
+      "labelled": 608,
+      "pointwise_accuracy": 0.9111842105263158,
+      "feasible": 996,
+      "eligible": 1048,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.950381679389313
+    },
+    {
+      "trip_id": "00000040",
+      "correct": 2536,
+      "labelled": 2620,
+      "pointwise_accuracy": 0.9679389312977099,
+      "feasible": 2763,
+      "eligible": 2994,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9228456913827655
+    },
+    {
+      "trip_id": "00000052",
+      "correct": 197,
+      "labelled": 200,
+      "pointwise_accuracy": 0.985,
+      "feasible": 255,
+      "eligible": 261,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9770114942528736
+    },
+    {
+      "trip_id": "00000056",
+      "correct": 1958,
+      "labelled": 2044,
+      "pointwise_accuracy": 0.9579256360078278,
+      "feasible": 3642,
+      "eligible": 3957,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9203942380591357
+    },
+    {
+      "trip_id": "00000065",
+      "correct": 416,
+      "labelled": 420,
+      "pointwise_accuracy": 0.9904761904761905,
+      "feasible": 662,
+      "eligible": 766,
+      "excluded_large_gap_pairs": 1,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.8642297650130548
+    },
+    {
+      "trip_id": "00000076",
+      "correct": 899,
+      "labelled": 932,
+      "pointwise_accuracy": 0.9645922746781116,
+      "feasible": 1386,
+      "eligible": 1485,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9333333333333333
+    },
+    {
+      "trip_id": "00000077",
+      "correct": 2114,
+      "labelled": 2364,
+      "pointwise_accuracy": 0.8942470389170897,
+      "feasible": 3110,
+      "eligible": 3910,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.7953964194373402
+    },
+    {
+      "trip_id": "00000091",
+      "correct": 577,
+      "labelled": 628,
+      "pointwise_accuracy": 0.9187898089171974,
+      "feasible": 801,
+      "eligible": 873,
+      "excluded_large_gap_pairs": 0,
+      "invalid_observation_breaks": 0,
+      "continuity": 0.9175257731958762
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy as np
 import pandas as pd
 
@@ -8,8 +10,13 @@ from .road_routing import Router
 def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="hmm"):
     score_keys(candidates,scores)
     joined = candidates.merge(scores[KEY+["p_match"]],on=KEY,validate="one_to_one")
-    groups = {k:v.sort_values("candidate_arc_id").reset_index(drop=True) for k,v in joined.groupby("obs_id")}
+    groups = defaultdict(list)
+    for candidate in joined.sort_values(["obs_id", "candidate_arc_id"]).itertuples(index=False):
+        groups[candidate.obs_id].append(candidate)
     router = Router(nodes,arcs,metadata)
+    break_penalty = config.get("break_penalty")
+    if break_penalty is not None and (not np.isfinite(break_penalty) or break_penalty <= 0):
+        raise ValueError("break_penalty must be finite and positive")
     chosen = {}
     run, values, back = [], [], []
     breaks = {}
@@ -20,7 +27,7 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
         state = int(np.argmax(values[-1]))
         for t in range(len(run)-1,-1,-1):
             obs,frame = run[t]
-            row = frame.iloc[state]
+            row = frame[state]
             chosen[obs.obs_id] = row
             if t:
                 state = int(back[t][state])
@@ -38,7 +45,7 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
             breaks[obs.obs_id] = "invalid_observation" if not obs.valid else "no_candidates"
             continue
         frame = groups[obs.obs_id]
-        emission = np.log(np.maximum(frame.p_match.to_numpy(),config["epsilon"]))
+        emission = np.log(np.maximum(np.fromiter((row.p_match for row in frame), dtype=float, count=len(frame)),config["epsilon"]))
         if run:
             previous,old = run[-1]
             dt = obs.timestamp_s-previous.timestamp_s
@@ -50,11 +57,15 @@ def decode_trip(observations,nodes,arcs,candidates,scores,metadata,config,mode="
                 displacement = np.hypot(obs.x_m-previous.x_m,obs.y_m-previous.y_m)
                 total = np.full((len(old),len(frame)),-np.inf)
                 limit = config["max_speed_mps"]*max(0,dt)+config["slack_m"]
-                for i,left in enumerate(old.itertuples()):
-                    for j,right in enumerate(frame.itertuples()):
+                for i,left in enumerate(old):
+                    for j,right in enumerate(frame):
                         distance,_ = router.between(left,right,limit)
                         if np.isfinite(distance):
                             total[i,j] = values[-1][i]-abs(distance-displacement)/config["beta_m"]
+                        elif break_penalty is not None:
+                            # A new route segment may begin here. Traceback keeps the
+                            # selected road pair and the route export records the break.
+                            total[i,j] = values[-1][i] - break_penalty
                 parents = total.argmax(axis=0)
                 scores_next = total[parents,np.arange(len(frame))]+emission
                 if np.isfinite(scores_next).any():

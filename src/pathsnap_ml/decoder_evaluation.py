@@ -10,7 +10,7 @@ from .decoder import decode_trip
 from .route_metrics import compute_continuity
 
 
-def evaluate_decoder(workspace,model_id,profile="baseline",mode="hmm",config_override=None,split="student_test"):
+def evaluate_decoder(workspace,model_id,profile="baseline",mode="hmm",config_override=None,split="student_test", output_name=None):
     scores = pd.read_parquet(workspace/"results"/profile/"models"/model_id/("cv_scores.parquet" if split=="train" else "student_test_scores.parquet"))
     config = config_override or yaml.safe_load((workspace/"configs/decoder.yaml").read_text())
     outputs,routes,trip_metrics = [],[],[]
@@ -41,7 +41,7 @@ def evaluate_decoder(workspace,model_id,profile="baseline",mode="hmm",config_ove
                  mean_trip_accuracy=sum(m["pointwise_accuracy"] for m in evaluable)/max(1,len(evaluable)),
                  exact_trip_match_rate=sum(m["correct"]==m["labelled"] for m in evaluable)/max(1,len(evaluable)),
                  continuity=feasible/eligible if eligible else None,feasible=feasible,eligible=eligible,per_trip=trip_metrics)
-    out=workspace/"results/decoder"/profile/model_id/mode/split
+    out=workspace/"results/decoder"/profile/(output_name or model_id)/mode/split
     out.mkdir(parents=True,exist_ok=True)
     pd.concat(outputs,ignore_index=True).to_parquet(out/"predictions.parquet",index=False)
     (out/"routes.json").write_text(json.dumps({"contract_version":"pathsnap-ml-v1","trips":routes},indent=2))

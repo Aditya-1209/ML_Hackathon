@@ -1,0 +1,24 @@
+{
+  "model_id": "random_forest_gps_context_tuned",
+  "config": {
+    "beta_m": 138.12240169527854,
+    "gap_s": 60,
+    "max_speed_mps": 55,
+    "slack_m": 30,
+    "epsilon": 1e-09,
+    "break_penalty": 0.5255309012886322
+  },
+  "trial": 4,
+  "mean_fold_top1": 0.9398044113901267,
+  "fold_top1": [
+    0.9486875224739303,
+    0.9716017462806765,
+    0.9145093755689059,
+    0.9096779580816656,
+    0.9545454545454546
+  ],
+  "search_seconds": 265.4272608750034,
+  "cv_sha256": "72e9d741aa29106b7669865310e51bc65066d173b33429edf00efbf8a86b4a04",
+  "objective": "mean of five trip-grouped fold decoded Top-1 accuracies",
+  "seed": 42
+}

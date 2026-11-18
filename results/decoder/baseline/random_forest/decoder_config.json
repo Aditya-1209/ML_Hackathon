@@ -1,0 +1,32 @@
+{
+  "model_id": "random_forest",
+  "config": {
+    "beta_m": 50,
+    "gap_s": 60,
+    "max_speed_mps": 55,
+    "slack_m": 30,
+    "epsilon": 1e-09
+  },
+  "objective": "pooled training OOF observation Top-1",
+  "trials": [
+    {
+      "beta_m": 20,
+      "correct": 105131,
+      "labelled": 138093,
+      "accuracy": 0.761305786679991
+    },
+    {
+      "beta_m": 50,
+      "correct": 105142,
+      "labelled": 138093,
+      "accuracy": 0.7613854431433889
+    },
+    {
+      "beta_m": 100,
+      "correct": 105114,
+      "labelled": 138093,
+      "accuracy": 0.761182681236558
+    }
+  ],
+  "cv_scores_sha256": "010d51a3eb10717052ace91116da23e38d4ae2b126bd1a252347586fc9f050de"
+}

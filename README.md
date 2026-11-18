@@ -4,6 +4,14 @@
 
 Use Python 3.12. Install with `python -m pip install -r requirements.txt`. Every standalone ZIP includes the same prepared development data and shared runtime, so each owner can train immediately. Keep each ZIP in a separate extracted folder outside the Git clone.
 
+## Selected model for completed trips
+
+The Bayesian-tuned GPS-context Random Forest achieved **94.98% student-test observation Top-1**. With the selected HMM/Viterbi decoder, the result was **95.18% Top-1 and 91.61% route continuity** on ten student-test trips. The fitted classifier is stored with its 27-feature configuration, and the decoder configuration records the tuned cost of starting a new route segment. [Fitted classifier and feature columns](results/experiments/models/random_forest_gps_context_tuned/) · [Selected decoder configuration](results/decoder/experiments/random_forest_gps_context_tuned_segment_breaks/decoder_config.json)
+
+The reports cover [model comparison and selection](report_sections/06_model_comparison_and_selection.md), [Bayesian classifier tuning](report_sections/07_random_forest_bayesian_optimisation.md) and [Viterbi route reconstruction](report_sections/08_hmm_viterbi_route_reconstruction.md).
+
+## Baseline team runners
+
 Run the script matching your assignment.
 
 ```sh
@@ -44,13 +52,13 @@ python finish_after_merge.py
 
 This refuses missing/mismatched model runs, compares CV/student-test results, computes classifier route continuity and writes results/baseline/comparison.csv, plots and selection.json. The predeclared primary criterion is mean-fold observation Top-1 accuracy, with pooled candidate Macro F1 as the first tie-break. The student-test partition supplies development comparisons. Model selection from these development experiments does not replace the final reserved evaluator assessment.
 
-For Bayesian optimisation of the selected model and final HMM/Viterbi tuning/evaluation:
+To reproduce the earlier baseline runner’s tuning and route evaluation, run this command.
 
 ```sh
 python finish_after_merge.py --tune --trials 30
 ```
 
-Tuning uses fixed training CV and saves the trials. It refits the chosen classifier and generates selected-configuration OOF scores, then tunes the decoder on those training OOF scores and compares classifier-only/HMM on student-test trips. Final classifier artifacts are in artifacts/final. Decoder comparisons and maps are under results/decoder/baseline/final. Thirty trials are a proposed budget.
+Tuning uses fixed training CV and saves the trials. It refits the chosen classifier and generates selected-configuration OOF scores, then tunes the decoder on those training OOF scores and compares classifier-only/HMM on student-test trips. This baseline runner writes its classifier artifacts to artifacts/final. Decoder comparisons and maps are under results/decoder/baseline/final. Thirty trials are a proposed budget.
 
 ## Prepared data and label interpretation
 
