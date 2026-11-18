@@ -1,18 +1,5 @@
-# PathSnap HMM Viterbi Decoder Configuration
-# All parameters used by the Hidden Markov Model and route reconstruction decoder
-
-model:
-  beta_m: 10.0                # Transition score scale parameter in metres: T = -|d_net - d_obs| / beta_m
-  epsilon: 1.0e-6             # Minimum probability floor to avoid log(0) in emissions
-  normalize_emissions: false  # Whether to normalize candidate probabilities per observation
-  max_speed_mps: 40.0         # Maximum physically plausible vehicle speed (40 m/s ~ 144 km/h)
-  speed_slack_mps: 5.0        # Slack added to max speed to accommodate GPS jitter
-  max_gap_s: 15.0             # Maximum elapsed seconds before treating as a large gap and splitting segment
-
-routing:
-  directed: true              # Arcs are directed from from_node_id to to_node_id
-  allow_cycles: true          # Allow network cycles for same-arc loop routing
-  cache_shortest_paths: true  # Cache shortest path distances between node pairs
-
-evaluation:
-  continuity_tolerance_m: 1.0 # Numerical tolerance for endpoint matching
+beta_m: 50
+gap_s: 60
+max_speed_mps: 55
+slack_m: 30
+epsilon: 0.000000001
