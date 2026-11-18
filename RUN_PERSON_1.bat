@@ -1,0 +1,9 @@
+@echo off
+cd /d "%~dp0"
+where py >nul 2>nul
+if errorlevel 1 (
+  python start_person1.py %*
+) else (
+  py -3.12 start_person1.py %*
+)
+pause
