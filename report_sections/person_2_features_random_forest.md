@@ -19,6 +19,17 @@ The two-trip raw geometry probe used a local tangent-plane approximation solely 
 
 Both inspected trips had a candidate for every valid observation. The observed proxy label coverage was 78.94% and 91.37%, respectively. The candidate miss rates use all assigned valid points as the denominator. Neither result measures classifier accuracy. No threshold was changed after the probe.
 
+## Full development-archive check
+
+After the two-trip probe, the same exploratory projection was used on all 90 development trips. An initial run identified five long trips above the original five-million-cell alignment limit. The backward pass now retains one row at a time, and the limit is 20 million cells to cover the largest observed run (17,883,272 cells). The rerun completed every trip and reproduced the previous 85 successful trip summaries exactly. The revised dynamic programming also matched exhaustive enumeration on 300 small cases.
+
+| Partition | Trips | Valid GPS points | Candidate rows | Assigned | Ambiguous | Candidate misses among assigned | GPS points with no candidates |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Train | 80 | 208,417 | 1,228,578 | 134,828 | 51,034 | 437 | 108 |
+| Student test | 10 | 19,160 | 113,710 | 14,118 | 5,015 | 24 | 0 |
+
+These figures describe the exploratory raw-trip run. Regenerate them with Person 1's projected data and the canonical Parquet workflow before reporting shared baseline metrics.
+
 ## Random Forest
 
 The unfitted pipeline uses median imputation fitted inside each training fold, with entirely missing feature columns retained, then a 150-tree Random Forest. The baseline uses seed 42, a minimum of three samples per leaf and balanced subsampling class weights. Trees can model nonlinear interactions such as heading being informative when movement is available. Important limitations include noisy proxy labels, correlated rows within trips, and potential calibration drift. Any impurity-based feature importance should be interpreted cautiously for correlated and continuous features. If selected for Bayesian tuning, useful search parameters include max depth, minimum leaf size, max features and tree count.

@@ -11,15 +11,28 @@ LABEL_DTYPES = {
 }
 
 
-def _monotonic_costs(cost):
-    """Minimum total path cost constrained to visit each (observation, position)."""
-    forward = cost.copy()
-    backward = cost.copy()
-    for index in range(1, len(cost)):
-        forward[index] += np.minimum.accumulate(forward[index - 1])
-    for index in range(len(cost) - 2, -1, -1):
-        backward[index] += np.minimum.accumulate(backward[index + 1, ::-1])[::-1]
-    return forward + backward - cost, forward[-1].min()
+def _unique_route_positions(distances, max_distance, margin):
+    """Find uniquely plausible positions using one backward row at a time."""
+    penalty = len(distances) * max_distance + margin + 1
+    forward = np.empty_like(distances)
+    prefix = np.zeros(distances.shape[1])
+    for i, row in enumerate(distances):
+        forward[i] = np.where(row <= max_distance, row, penalty) + prefix
+        prefix = np.minimum.accumulate(forward[i])
+    best = prefix[-1]
+    positions = np.full(len(distances), -1, dtype=np.int64)
+    if best >= penalty:
+        return positions
+
+    suffix = np.zeros(distances.shape[1])
+    for i in range(len(distances) - 1, -1, -1):
+        row = distances[i]
+        plausible = np.flatnonzero((forward[i] + suffix <= best + margin) & (row <= max_distance))
+        if len(plausible) == 1:
+            positions[i] = plausible[0]
+        backward = np.where(row <= max_distance, row, penalty) + suffix
+        suffix = np.minimum.accumulate(backward[::-1])[::-1]
+    return positions
 
 
 def align_reference(observations, nodes, arcs, reference, metadata, config):
@@ -62,32 +75,22 @@ def align_reference(observations, nodes, arcs, reference, metadata, config):
     for _, run in valid.groupby(breaks):
         if len(run) * len(route) > cell_limit:
             raise ValueError("Reference alignment run exceeds max_alignment_cells")
-        distances = np.stack([
-            project(point, route_starts, route_ends)[0]
-            for point in run[["x_m", "y_m"]].to_numpy(dtype=float)
-        ])
+        coordinates = run[["x_m", "y_m"]].to_numpy(dtype=float)
+        distances = np.empty((len(run), len(route)))
+        for i, point in enumerate(coordinates):
+            distances[i] = project(point, route_starts, route_ends)[0]
         near = distances.min(axis=1) <= max_distance
         if not near.any():
             continue
         eligible = run.loc[near]
-        costs = distances[near]
-        # Discard impossible positions after the DP using an overwhelming finite
-        # penalty, avoiding infinity subtraction in the forward/backward sum.
-        penalty = len(eligible) * max_distance + margin + 1
-        constrained = np.where(costs <= max_distance, costs, penalty)
-        through, best = _monotonic_costs(constrained)
+        if not near.all():
+            distances = distances[near]
+        positions = _unique_route_positions(distances, max_distance, margin)
         labels.loc[eligible.obs_id, "label_source"] = "reference_alignment"
-        if best >= penalty:
-            # Individually nearby observations cannot be made chronological.
-            labels.loc[eligible.obs_id, "label_status"] = "ambiguous"
-            continue
-        plausible = (through <= best + margin) & (costs <= max_distance)
-        for obs_id, positions_mask in zip(eligible.obs_id, plausible):
-            positions = np.flatnonzero(positions_mask)
-            if len(positions) != 1:
+        for obs_id, position in zip(eligible.obs_id, positions):
+            if position < 0:
                 labels.loc[obs_id, "label_status"] = "ambiguous"
                 continue
-            position = positions[0]
             labels.at[obs_id, "target_arc_id"] = int(route_arcs[position])
             labels.at[obs_id, "target_route_pos"] = int(position)
             labels.at[obs_id, "label_status"] = "assigned"
