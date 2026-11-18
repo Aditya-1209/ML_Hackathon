@@ -1,0 +1,26 @@
+{
+  "trial": 5,
+  "params": {
+    "model__n_estimators": 96,
+    "model__max_depth": 18,
+    "model__min_samples_leaf": 12,
+    "model__max_samples": 0.2
+  },
+  "objective": 0.8447771586792354,
+  "fold_top1": [
+    0.8987414599065084,
+    0.9129402788962828,
+    0.8191516475514291,
+    0.7225485011272859,
+    0.8705039059146708
+  ],
+  "trials": 10,
+  "startup_trials": 3,
+  "search_seconds": 394.4932381249964,
+  "workers": 5,
+  "sampler": "TPESampler",
+  "seed": 42,
+  "sklearn": "1.9.1",
+  "optuna": "4.9.0",
+  "platform": "macOS-27.0-arm64-arm-64bit"
+}
