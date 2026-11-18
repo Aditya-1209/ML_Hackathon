@@ -1,0 +1,6 @@
+model,feasible_pairs,eligible_pairs,classifier_continuity
+random_forest,16784,19149,0.8764948561282574
+hist_gradient_boosting,16644,19149,0.8691837693874354
+decision_tree,16194,19149,0.8456838477205076
+logistic_regression,16797,19149,0.8771737427541908
+knn,15896,19149,0.8301216773721866
