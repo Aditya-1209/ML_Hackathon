@@ -1,4 +1,11 @@
 {
-  "python.analysis.extraPaths": ["src"],
-  "python.autoComplete.extraPaths": ["src"]
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src",
+    "src"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/src",
+    "src"
+  ],
+  "python.envFile": "${workspaceFolder}/.env"
 }
